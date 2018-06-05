@@ -77,8 +77,8 @@
   :group 'fic-mode)
 
 (defvar fic-mode-font-lock-keywords '((fic-search-for-keyword
-                                       (1 'fic-face t)
-                                       (2 'fic-author-face t t))) 
+				       (1 'fic-face t)
+				       (2 'fic-author-face t t)))
   "Font Lock keywords for fic-mode")
 
 (defvar fic-saved-hash nil
@@ -93,18 +93,18 @@
   "Regexp to search for."
   (let ((hash (cons fic-highlighted-words fic-author-name-regexp)))
     (if (and fic-saved-hash
-           (equal fic-saved-hash hash))
-        fic-saved-regexp
+	   (equal fic-saved-hash hash))
+	fic-saved-regexp
       (let ((fic-words-re (concat "\\<"
-                                  (regexp-opt fic-highlighted-words t)
-                                  "\\>")))
-        (setq fic-saved-hash hash
-              fic-saved-regexp (concat fic-words-re "\\(?:(\\(" fic-author-name-regexp "\\))\\)?"))
-        fic-saved-regexp))))
+				  (regexp-opt fic-highlighted-words t)
+				  "\\>")))
+	(setq fic-saved-hash hash
+	      fic-saved-regexp (concat fic-words-re "\\(?:(\\(" fic-author-name-regexp "\\))\\)?"))
+	fic-saved-regexp))))
 
 (defun fic-in-doc/comment-region (pos)
   (memq (get-char-property pos 'face)
-        fic-activated-faces))
+	fic-activated-faces))
 
 (defun fic-search-for-keyword (limit)
   (let (match-data-to-set)
@@ -162,7 +162,6 @@
 	(switch-to-buffer tobuf)
 	(goto-char pos)))))
 
-
 (defun fic--append-line-to-buffer (&optional buffer)
   "Append the lines where keywords located in to BUFFER.
 By default, BUFFER is named \"*Fic-Jump*\"."
@@ -175,14 +174,17 @@ By default, BUFFER is named \"*Fic-Jump*\"."
 	  (with-current-buffer newbuf
 	    (let ((inhibit-read-only t))
 	      (dolist (marker markers)
+		(insert (format "Buffer: %s  "(buffer-name (marker-buffer marker))))
+		(insert (format "Line: %s " (fic--lineno-in-position marker)))
+		(insert (format "%s " (fic--content-in-line-in-position marker)))
 		(let ((beg (point)))
-		  (insert (format "Buffer: %s  "(buffer-name (marker-buffer marker))))
-		  (insert (format "Line: %s " (fic--lineno-in-position marker)))
-		  (insert (format "%s ..." (fic--content-in-line-in-position marker)))
-		  (make-button
-		   beg (point) 'action
-		   ((lambda (mkr) (lambda (x) (fic--jump-to mkr)))
-		    marker)))
+		  (insert (format "..." (fic--content-in-line-in-position marker)))
+		  (make-text-button
+		   beg (point)
+		   'follow-link t
+		   'mouse-face 'highlight
+		   'help-echo "Click to visit it in other window"
+		   'action ((lambda (mkr) (lambda (x) (fic--jump-to mkr))) marker)))
 		(insert "\n"))))
 	  (view-buffer (get-buffer newbuf)))
       (message "The fic-mode is disabled in this buffer."))))
