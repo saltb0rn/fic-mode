@@ -174,17 +174,22 @@ By default, BUFFER is named \"*Fic-Jump*\"."
 	  (with-current-buffer newbuf
 	    (let ((inhibit-read-only t))
 	      (dolist (marker markers)
-		(insert (format "Buffer: %s  "(buffer-name (marker-buffer marker))))
-		(insert (format "Line: %s " (fic--lineno-in-position marker)))
-		(insert (format "%s " (fic--content-in-line-in-position marker)))
 		(let ((beg (point)))
-		  (insert (format "..." (fic--content-in-line-in-position marker)))
+		  (insert (format "Visit" (fic--content-in-line-in-position marker)))
 		  (make-text-button
 		   beg (point)
 		   'follow-link t
+;;		   'face '(:underline nil)
 		   'mouse-face 'highlight
 		   'help-echo "Click to visit it in other window"
-		   'action ((lambda (mkr) (lambda (x) (fic--jump-to mkr))) marker)))
+		   'action ((lambda (mkr)
+			      (lambda (x)
+				(let ((inhibit-read-only t)) (erase-buffer))
+				(fic--jump-to mkr))) marker)))
+		(insert " ")
+		(insert (format "Buffer: %s  "(buffer-name (marker-buffer marker))))
+		(insert (format "Line: %s " (fic--lineno-in-position marker)))
+		(insert (format "%s " (fic--content-in-line-in-position marker)))
 		(insert "\n"))))
 	  (view-buffer (get-buffer newbuf)))
       (message "The fic-mode is disabled in this buffer."))))
